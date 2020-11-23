@@ -238,6 +238,11 @@ class PackageLoader {
         try shellOut(to: "git checkout \(checkoutIdentifier) --quiet", at: repositoryFolder.path)
         try shellOut(to: "git submodule update --init --recursive --quiet", at: repositoryFolder.path)
 
+        if repositoryFolder.containsFile(named: "Package.swift") {
+            print("🚗  \(name) is ready for test drive\n")
+            return Package(name: name, folder: repositoryFolder, projectPath: nil)
+        }
+        
         for subfolder in repositoryFolder.makeSubfolderSequence(recursive: true) {
             if subfolder.isValidXcodeProject {
                 let projectPath = subfolder.path.replacingOccurrences(of: repositoryFolder.parent!.path, with: "")
@@ -245,11 +250,6 @@ class PackageLoader {
                 print("🚗  \(packageName) is ready for test drive\n")
                 return Package(name: packageName, folder: repositoryFolder, projectPath: projectPath)
             }
-        }
-
-        if repositoryFolder.containsFile(named: "Package.swift") {
-            print("🚗  \(name) is ready for test drive\n")
-            return Package(name: name, folder: repositoryFolder, projectPath: nil)
         }
 
         throw TestDriveError.missingXcodeProject(url)
