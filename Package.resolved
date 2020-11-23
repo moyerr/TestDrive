@@ -41,7 +41,7 @@
         "package": "Xgen",
         "repositoryURL": "https://github.com/moyerr/Xgen.git",
         "state": {
-          "branch": "xcode-12-build-active-scheme",
+          "branch": "main",
           "revision": "ad0a231bc449390e20e9bae7e0dfe972f575f185",
           "version": null
         }
