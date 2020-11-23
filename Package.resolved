@@ -39,11 +39,11 @@
       },
       {
         "package": "Xgen",
-        "repositoryURL": "https://github.com/JohnSundell/Xgen.git",
+        "repositoryURL": "https://github.com/moyerr/Xgen.git",
         "state": {
-          "branch": null,
-          "revision": "bc7ec3bf76e63c317d1523c865d65023f450eb0b",
-          "version": "2.0.1"
+          "branch": "xcode-12-build-active-scheme",
+          "revision": "ad0a231bc449390e20e9bae7e0dfe972f575f185",
+          "version": null
         }
       }
     ]
