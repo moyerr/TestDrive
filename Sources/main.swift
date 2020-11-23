@@ -318,7 +318,7 @@ do {
     for package in packages {
         try package.folder.move(to: projectsFolder)
         
-        let projectsDirectory = "Projects/"
+        let projectsDirectory = "\(workspaceName)/Projects/"
         
         if let projectPath = package.projectPath {
             workspace.addProject(at: projectsDirectory + projectPath)
