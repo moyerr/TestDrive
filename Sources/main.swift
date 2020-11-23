@@ -155,7 +155,7 @@ struct Target {
 struct Package {
     let name: String
     let folder: Folder
-    let projectPath: String
+    let projectPath: String?
 }
 
 class PackageLoader {
@@ -248,10 +248,8 @@ class PackageLoader {
         }
 
         if repositoryFolder.containsFile(named: "Package.swift") {
-            let projectName = "\(name).xcodeproj"
-            try shellOut(to: "swift package generate-xcodeproj --output \(projectName)", at: repositoryFolder.path)
             print("🚗  \(name) is ready for test drive\n")
-            return Package(name: name, folder: repositoryFolder, projectPath: name + "/" + projectName)
+            return Package(name: name, folder: repositoryFolder, projectPath: nil)
         }
 
         throw TestDriveError.missingXcodeProject(url)
@@ -319,8 +317,14 @@ do {
 
     for package in packages {
         try package.folder.move(to: projectsFolder)
-        let projectPath = "\(workspaceName)/Projects/\(package.projectPath)"
-        workspace.addProject(at: projectPath)
+        
+        let projectsDirectory = "Projects/"
+        
+        if let projectPath = package.projectPath {
+            workspace.addProject(at: projectsDirectory + projectPath)
+        } else {
+            workspace.addReference(to: projectsDirectory + package.folder.name)
+        }
     }
 
     print("⚡️  Generating workspace at \(workspace.path)...")
