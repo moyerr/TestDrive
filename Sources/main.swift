@@ -155,7 +155,7 @@ struct Target {
 struct Package {
     let name: String
     let folder: Folder
-    let projectPath: String
+    let projectPath: String?
 }
 
 class PackageLoader {
@@ -238,6 +238,11 @@ class PackageLoader {
         try shellOut(to: "git checkout \(checkoutIdentifier) --quiet", at: repositoryFolder.path)
         try shellOut(to: "git submodule update --init --recursive --quiet", at: repositoryFolder.path)
 
+        if repositoryFolder.containsFile(named: "Package.swift") {
+            print("🚗  \(name) is ready for test drive\n")
+            return Package(name: name, folder: repositoryFolder, projectPath: nil)
+        }
+        
         for subfolder in repositoryFolder.makeSubfolderSequence(recursive: true) {
             if subfolder.isValidXcodeProject {
                 let projectPath = subfolder.path.replacingOccurrences(of: repositoryFolder.parent!.path, with: "")
@@ -245,13 +250,6 @@ class PackageLoader {
                 print("🚗  \(packageName) is ready for test drive\n")
                 return Package(name: packageName, folder: repositoryFolder, projectPath: projectPath)
             }
-        }
-
-        if repositoryFolder.containsFile(named: "Package.swift") {
-            let projectName = "\(name).xcodeproj"
-            try shellOut(to: "swift package generate-xcodeproj --output \(projectName)", at: repositoryFolder.path)
-            print("🚗  \(name) is ready for test drive\n")
-            return Package(name: name, folder: repositoryFolder, projectPath: name + "/" + projectName)
         }
 
         throw TestDriveError.missingXcodeProject(url)
@@ -308,8 +306,8 @@ do {
     let packageNames = packages.map { $0.name }
 
     let workspaceName = "TestDrive-\(packageNames.joined(separator: "-")).xcworkspace"
-    let workspaceFolder = try FileSystem().createFolder(at: workspaceName)
-    let workspace = Workspace(path: workspaceFolder.path)
+    let workspaceFolder = try Folder.current.createSubfolder(named: workspaceName)
+    let workspace = Workspace(path: workspaceName)
 
     let playground = workspace.addPlayground()
     playground.platform = arguments.platform
@@ -319,8 +317,14 @@ do {
 
     for package in packages {
         try package.folder.move(to: projectsFolder)
-        let projectPath = "\(workspaceName)/Projects/\(package.projectPath)"
-        workspace.addProject(at: projectPath)
+        
+        let projectsDirectory = "\(workspaceName)/Projects/"
+        
+        if let projectPath = package.projectPath {
+            workspace.addProject(at: projectsDirectory + projectPath)
+        } else {
+            workspace.addReference(to: projectsDirectory + package.folder.name)
+        }
     }
 
     print("⚡️  Generating workspace at \(workspace.path)...")
